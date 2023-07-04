@@ -33,15 +33,20 @@ export class UsersService {
             password: passwordHash
         }
 
+        const existUserByEmail: boolean = await this.getUserExistByEmail(user.email);
+
+        if(existUserByEmail){
+            return false;
+        }
+
         try {
             await this.dynamoService.putItem(this.dynamoDBTableName, userItem);
-
-            console.log('Usuario registrado')
+            delete userItem['password'];
+            return userItem;
         } catch (error) {
             console.log(error);
             throw new InternalServerErrorException(error);
         }
-        return userItem
     }
 
     async listUsers(limit: number, lastId?: string): Promise<any>{
@@ -53,7 +58,6 @@ export class UsersService {
             if (lastId) {
                 startKey = {
                     'PK': '#USER#META',
-                    // 'SK': ''
                 }
             }
 
@@ -89,5 +93,22 @@ export class UsersService {
             console.log(error);
             throw new InternalServerErrorException(error);
         }
+    }
+
+    // private internal functions
+    private async getUserExistByEmail(email: string): Promise<boolean> {
+        
+        const key = {
+            'PK': '#USER#META',
+            'SK': `#USER#EMAIL#${email}`
+        }
+
+        const userFinder = await this.dynamoService.getItemByKey(this.dynamoDBTableName, key);
+        
+        if (!userFinder) { 
+            return false;
+        }
+
+        return true;
     }
 }
