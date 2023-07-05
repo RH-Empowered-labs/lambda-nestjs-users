@@ -5,6 +5,7 @@ import { DynamodbService } from '../dynamodb/dynamodb.service';
 import { CreateUserDTO, LoginUserDTO } from './dto/users-dto';
 
 import * as bcrypt from 'bcryptjs';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
@@ -15,7 +16,7 @@ export class UsersService {
     constructor (
         private configService: ConfigService,
         private dynamoService: DynamodbService,
-
+        private jwtAuthService: JwtService,
     ) { 
         this.dynamoDBTableName = this.configService.get<string>('DYNAMODB_TABLE_NAME');
     }
@@ -51,8 +52,6 @@ export class UsersService {
 
     async listUsers(limit: number, lastId?: string): Promise<any>{
         try {
-            console.log('Listando usuarios')
-
             let startKey: undefined | any;
 
             if (lastId) {
@@ -87,6 +86,19 @@ export class UsersService {
             }
 
             delete userFinder['password'];
+
+            const payload: any = {
+                id: userFinder['id'],
+                PK: userFinder['PK'],
+                SK: userFinder['SK'],
+                name: userFinder['name'],
+                email: userFinder['email'],
+            }
+
+            const token = this.jwtAuthService.sign(payload);
+
+            userFinder['token'] = token;
+
             return userFinder
 
         } catch (error) {

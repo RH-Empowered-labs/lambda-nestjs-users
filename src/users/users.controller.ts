@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDTO, LoginUserDTO, UserDataDTO } from './dto/users-dto';
+import { JwtAuthGuard } from './jwt.guard';
 
 @Controller('users')
 export class UsersController {
@@ -15,6 +16,7 @@ export class UsersController {
         return this.usersService.loginUserByEmail(loginUserData);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get('/:lastId?')
     listUsers(@Param('lastId') lastId: string = null): Promise<UserDataDTO[]>{
         return this.usersService.listUsers(10, lastId);
