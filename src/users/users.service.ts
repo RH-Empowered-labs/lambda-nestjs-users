@@ -60,7 +60,7 @@ export class UsersService {
                 }
             }
 
-            return await this.dynamoService.scanItems(this.dynamoDBTableName, limit, startKey);
+            return await this.dynamoService.queryItemsByPK(this.dynamoDBTableName, limit, '#USER#META', startKey);
         } catch (error) {
             console.log(error);
             throw new InternalServerErrorException(error);

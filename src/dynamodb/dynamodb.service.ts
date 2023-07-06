@@ -45,6 +45,33 @@ export class DynamodbService {
         }
     }
 
+    async queryItemsByPK(tableName: string, limit: number, pk: string, startKey?: any): Promise<{ items: any[], lastKey?: Record<string, AttributeValue> } | ScanCommandOutput | Error> {
+        
+        const params = {
+            TableName: tableName,
+            KeyConditionExpression: 'PK = :pk',
+            ExpressionAttributeValues: {
+                ':pk': pk,
+            },
+            Limit: limit,
+            ExclusiveStartKey: startKey
+        }
+    
+        try {
+            const response = await this.dynamoDBDocumentClient.send(new QueryCommand(params));
+            return {
+                items: response.Items,
+                lastKey: response.LastEvaluatedKey
+            };
+        } catch (error) {
+            this.logger.error({
+                Title: 'Error query items',
+                Error: `[${error.message}]`
+            });
+            return error;
+        }
+    }
+
     async scanItems(tableName: string, limit: number, startKey?: any): Promise<{ items: any[], lastKey?: Record<string, AttributeValue> } | ScanCommandOutput | Error> {
         
         const params: ScanCommandInput = {
