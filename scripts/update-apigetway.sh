@@ -1,6 +1,6 @@
 #!/bin/bash
 API_NAME="MoviesApiGetway" # el nombre de tu API
-RESOURCE_PATH="/movies" # la ruta que quieres configurar
+RESOURCE_PATH="/users" # la ruta que quieres configurar
 STAGE_NAME="dev" # el nombre de la etapa
 
 FUNCTION_NAME=$(serverless info --verbose | grep "api: " | cut -d " " -f 4)
