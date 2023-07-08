@@ -4,16 +4,21 @@ import { UsersController } from './users.controller';
 import { DynamodbModule } from '../dynamodb/dynamodb.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 require('dotenv').config();
 
 @Module({
   imports: [
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: {
-        expiresIn: '60m'
-      }
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: '60m'
+        }
+      }),
+      inject: [ConfigService],
     }),
     DynamodbModule,
   ],

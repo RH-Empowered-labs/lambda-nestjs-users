@@ -1,26 +1,3 @@
-function listAllFiles(dirPath) {
-    
-    //requiring path and fs modules
-    const path = require('path');
-    const fs = require('fs');
-    let files = fs.readdirSync(dirPath);
-
-    files.forEach(file => {
-        let fullPath = path.join(dirPath, file);
-
-        if (fs.statSync(fullPath).isDirectory()) {
-            // Si es un directorio, recursivamente listar los archivos dentro de este
-            listAllFiles(fullPath);
-        } else {
-            // Si es un archivo, imprimir el nombre del archivo
-            console.log(fullPath);
-        }
-    });
-}
-
-listAllFiles(__dirname);
-
-
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
