@@ -5,6 +5,8 @@ import { DynamodbModule } from '../dynamodb/dynamodb.module';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 
+require('dotenv').config();
+
 @Module({
   imports: [
     JwtModule.register({

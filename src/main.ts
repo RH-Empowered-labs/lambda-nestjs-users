@@ -1,9 +1,38 @@
+function listAllFiles(dirPath) {
+    
+    //requiring path and fs modules
+    const path = require('path');
+    const fs = require('fs');
+    let files = fs.readdirSync(dirPath);
+
+    files.forEach(file => {
+        let fullPath = path.join(dirPath, file);
+
+        if (fs.statSync(fullPath).isDirectory()) {
+            // Si es un directorio, recursivamente listar los archivos dentro de este
+            listAllFiles(fullPath);
+        } else {
+            // Si es un archivo, imprimir el nombre del archivo
+            console.log(fullPath);
+        }
+    });
+}
+
+listAllFiles(__dirname);
+
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
 import { SecretsManagerInternal } from './utils/secretsManager';
 import { JWTConfigDTO, RemoteApiConfigDTO } from './utils/dtos/secretsDTO';
 import { ParameterStoreInternal } from './utils/parameterStore';
+
+import { ExpressAdapter } from '@nestjs/platform-express';
+import { Handler, Context } from 'aws-lambda';
+import * as serverlessExpress from 'aws-serverless-express';
+import * as express from 'express';
+
 
 require('dotenv').config();
 
@@ -47,12 +76,33 @@ const setCredentialsToEnv = async () => {
     console.log(process.env);
 }
 
+let server: any;
+
 async function bootstrap() {
     await setCredentialsToEnv();
-    const app = await NestFactory.create(AppModule);
-
-    let port = process.env.PORT || 3000
-    await app.listen(port);
-    console.log(`Application running in port ${port}`);
+    if (process.env.NODE_ENV == 'local'){
+        const app = await NestFactory.create(AppModule);
+        let port = process.env.PORT || 3000
+        await app.listen(port);
+        console.log(`Application running in port ${port}`);
+    } else {
+        if (!server) {
+            await setCredentialsToEnv();
+            const expressApp = express();
+            const adapter = new ExpressAdapter(expressApp);
+            const app = await NestFactory.create(AppModule, adapter);
+            await app.init();
+            server = serverlessExpress.createServer(expressApp);
+        }
+        return server;
+    }
 }
-bootstrap();
+
+if (process.env.NODE_ENV == 'local'){
+    bootstrap();
+}
+
+export const handler: Handler = async (event: any, context: Context) => {
+    const server = await bootstrap();
+    return serverlessExpress.proxy(server, event, context, 'PROMISE').promise;
+};
