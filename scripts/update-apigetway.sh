@@ -6,8 +6,6 @@ STAGE_NAME="dev" # el nombre de la etapa
 FUNCTION_NAME=$(serverless info --verbose | grep "api: " | cut -d " " -f 4)
 LAMBDA_ARN=$(aws lambda get-function --function-name $FUNCTION_NAME --query 'Configuration.FunctionArn' --output text)
 
-echo $LAMBDA_ARN
-
 # Obtén el ID de la API
 API_ID=$(aws apigatewayv2 get-apis --query "Items[?Name=='$API_NAME'].ApiId" --output text)
 
